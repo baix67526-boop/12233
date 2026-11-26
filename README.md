@@ -5,10 +5,11 @@
 - 代码根目录：/
 - 构建命令：npm run build
 - 产物目录：dist
-- 当前成功部署的路径：/kaoyan-helper2/
+- 部署路径：/kaoyan-helper2/
 
-仅包含静态网站源码，不包含账号密钥。
+## 自动部署
 
-## 自动部署验证
+GitHub Actions 工作流：.github/workflows/deploy-cloudbase.yml。
+每次推送 main 后构建并部署到腾讯云，需要仓库 Actions secrets：TCB_SECRET_ID、TCB_SECRET_KEY。不要在源码中保存密钥。
 
-2026-11-26：提交本次文档更新，用于验证 main 分支推送是否触发腾讯云新部署。当前自动触发能力尚待验证；文档提交不会改变网页内容。
+2026-11-26：配置凭据后触发首次端到端验证；部署结果待确认。
