@@ -1,0 +1,47 @@
+name: Deploy to Tencent CloudBase
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: cloudbase-production
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TCB_SECRET_ID: ${{ secrets.TCB_SECRET_ID }}
+      TCB_SECRET_KEY: ${{ secrets.TCB_SECRET_KEY }}
+      TCB_ENV_ID: top-elephant-d3gyj83sg68fa8f2e
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check deployment credentials
+        shell: bash
+        run: |
+          if [ -z "$TCB_SECRET_ID" ] || [ -z "$TCB_SECRET_KEY" ]; then
+            echo "::error::Add TCB_SECRET_ID and TCB_SECRET_KEY in repository Actions secrets."
+            exit 1
+          fi
+      - name: Build static website
+        run: npm run build
+      - name: Validate build output
+        run: |
+          test -s dist/index.html
+          node --check dist/app.js
+          node --check dist/schools.js
+      - name: Install CloudBase CLI
+        run: npm install -g @cloudbase/cli@3.8.3
+      - name: Authenticate and deploy
+        shell: bash
+        run: |
+          tcb login --apiKeyId "$TCB_SECRET_ID" --apiKey "$TCB_SECRET_KEY"
+          tcb hosting deploy ./dist /kaoyan-helper2 -e "$TCB_ENV_ID"
+      - name: Clear local authentication
+        if: always()
+        run: tcb logout || true
